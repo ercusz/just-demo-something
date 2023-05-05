@@ -2,6 +2,7 @@ import { Input, type InputProps } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 const labelVariants = cva("", {
   variants: {
@@ -49,30 +50,29 @@ interface InputWithTextProps
   helperText?: string;
 }
 
-const InputWithText = ({
-  id,
-  text,
-  helperText,
-  variant,
-  className,
-  ...props
-}: InputWithTextProps) => {
-  return (
-    <div className="grid w-full max-w-sm items-center gap-1.5">
-      <Label htmlFor={id} className={cn(labelVariants({ variant, className }))}>
-        {text}
-      </Label>
-      <Input
-        {...props}
-        id={id}
-        className={cn(inputVariants({ variant, className }))}
-      />
-      <p className={cn(helperTextVariants({ variant, className }))}>
-        {helperText}
-      </p>
-    </div>
-  );
-};
+const InputWithText = React.forwardRef<HTMLInputElement, InputWithTextProps>(
+  ({ id, text, helperText, variant, className, ...props }, ref) => {
+    return (
+      <div className="grid w-full max-w-sm items-center gap-1.5">
+        <Label
+          htmlFor={id}
+          className={cn(labelVariants({ variant, className }))}
+        >
+          {text}
+        </Label>
+        <Input
+          id={id}
+          className={cn(inputVariants({ variant, className }))}
+          {...props}
+          ref={ref}
+        />
+        <p className={cn(helperTextVariants({ variant, className }))}>
+          {helperText}
+        </p>
+      </div>
+    );
+  },
+);
 InputWithText.displayName = "InputWithText";
 
 export { InputWithText, type InputWithTextProps };
