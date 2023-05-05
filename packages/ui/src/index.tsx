@@ -26,3 +26,4 @@ export * from "@/components/ui/toaster";
 export * from "@/components/ui/command";
 export * from "@/components/ui/popover";
 export * from "@/components/ui/dialog";
+export * from "@/components/InputWithText";
