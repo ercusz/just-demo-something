@@ -17,41 +17,50 @@ export const employeeRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { isManager } = input;
-      const positionName = isManager ? "Manager" : "Employee";
+      try {
+        const { isManager } = input;
+        const positionName = isManager ? "Manager" : "Employee";
 
-      // find positionId of Manager & Employee
-      const position = await ctx.prisma.position.findUnique({
-        where: {
-          name: positionName,
-        },
-      });
+        // find positionId of Manager & Employee
+        const position = await ctx.prisma.position.findUnique({
+          where: {
+            name: positionName,
+          },
+        });
 
-      if (!position) {
+        if (!position) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Position name=${positionName} not found`,
+          });
+        }
+
+        const createdUser = await clerkClient.users.createUser({
+          emailAddress: [input.email],
+          password: input.password,
+          firstName: input.firstName,
+          lastName: input.lastName,
+        });
+
+        const employee = {
+          firstName: input.firstName,
+          lastName: input.lastName,
+          email: input.email,
+          phone: input.phone,
+          departmentId: input.departmentId,
+          positionId: position.id,
+          userId: createdUser.id,
+        };
+
+        return ctx.prisma.employee.create({ data: employee });
+      } catch (error: unknown) {
+        console.error(error);
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Position name=${positionName} not found`,
+          message: "An unexpected error occurred, please try again later.",
         });
       }
-
-      const createdUser = await clerkClient.users.createUser({
-        emailAddress: [input.email],
-        password: input.password,
-        firstName: input.firstName,
-        lastName: input.lastName,
-      });
-
-      const employee = {
-        firstName: input.firstName,
-        lastName: input.lastName,
-        email: input.email,
-        phone: input.phone,
-        departmentId: input.departmentId,
-        positionId: position.id,
-        userId: createdUser.id,
-      };
-
-      return ctx.prisma.employee.create({ data: employee });
     }),
   byId: protectedProcedure.query(({ ctx }) => {
     return ctx.auth.employeeData;
