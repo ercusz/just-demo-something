@@ -11,7 +11,7 @@ export const employeeRouter = createTRPCRouter({
         password: z.string().min(8),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
-        phone: z.string().min(9).max(10),
+        phone: z.string().regex(/^[0-9]{9,10}$/, "Phone number is invalid"),
         departmentId: z.string().cuid(),
         isManager: z.boolean(),
       }),
