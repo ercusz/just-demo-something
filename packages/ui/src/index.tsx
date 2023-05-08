@@ -27,3 +27,6 @@ export * from "@/components/ui/command";
 export * from "@/components/ui/popover";
 export * from "@/components/ui/dialog";
 export * from "@/components/InputWithText";
+export * from "@/components/Combobox";
+export * from "@/components/ComboboxWithText";
+export * from "@/components/CheckboxWithText";
