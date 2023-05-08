@@ -30,3 +30,4 @@ export * from "@/components/InputWithText";
 export * from "@/components/Combobox";
 export * from "@/components/ComboboxWithText";
 export * from "@/components/CheckboxWithText";
+export * from "@/components/TabsContentCard";
