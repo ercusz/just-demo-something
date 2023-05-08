@@ -45,7 +45,7 @@ const helperTextVariants = cva("text-sm", {
 });
 
 interface CheckboxWithTextProps
-  extends React.ElementRef<typeof CheckboxPrimitive.Root>,
+  extends CheckboxPrimitive.CheckboxProps,
     VariantProps<typeof labelVariants>,
     VariantProps<typeof checkboxVariants>,
     VariantProps<typeof helperTextVariants> {
@@ -57,7 +57,7 @@ interface CheckboxWithTextProps
 }
 
 const CheckboxWithText = React.forwardRef<
-  HTMLInputElement,
+  CheckboxPrimitive.CheckboxProps,
   CheckboxWithTextProps
 >(({ id, className, text, descText, helperText, variant, ...props }, ref) => {
   return (
