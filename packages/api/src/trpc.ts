@@ -7,16 +7,16 @@
  * The pieces you will need to use are documented accordingly near the end
  */
 
-import { prisma } from "@acme/db";
+import { prisma, type Prisma } from "@acme/db";
 import type {
   SignedInAuthObject,
   SignedOutAuthObject,
 } from "@clerk/nextjs/api";
 import { getAuth } from "@clerk/nextjs/server";
-import { TRPCError, initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 
 /**
  * 1. CONTEXT
@@ -27,8 +27,13 @@ import { ZodError } from "zod";
  * processing a request
  *
  */
+type employeeData = Prisma.EmployeeGetPayload<{
+  include: { department: true; position: true };
+}>;
 type AuthContextProps = {
-  auth: SignedInAuthObject | SignedOutAuthObject;
+  auth:
+    | (SignedInAuthObject & { employeeData: employeeData | null })
+    | SignedOutAuthObject;
 };
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use
@@ -51,8 +56,26 @@ const createInnerTRPCContext = ({ auth }: AuthContextProps) => {
  * process every request that goes through your tRPC endpoint
  * @link https://trpc.io/docs/context
  */
-export const createTRPCContext = (opts: CreateNextContextOptions) => {
-  return createInnerTRPCContext({ auth: getAuth(opts.req) });
+export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+  const auth = getAuth(opts.req);
+
+  if (auth.userId !== null) {
+    const employee = await prisma.employee.findUnique({
+      where: {
+        userId: auth.userId,
+      },
+      include: {
+        position: true,
+        department: true,
+      },
+    });
+
+    return createInnerTRPCContext({
+      auth: { ...auth, employeeData: employee },
+    });
+  }
+
+  return createInnerTRPCContext({ auth: auth });
 };
 
 /**
@@ -101,10 +124,19 @@ export const publicProcedure = t.procedure;
  * Reusable middleware that enforces users are logged in before running the
  * procedure
  */
-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+const positionEnum = z.enum(["HR", "Manager", "Employee"]);
+const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
   if (!ctx.auth.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
   }
+
+  if (
+    !ctx.auth.employeeData ||
+    !positionEnum.parse(ctx.auth.employeeData.position.name)
+  ) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+  }
+
   return next({
     ctx: {
       auth: ctx.auth,
@@ -112,6 +144,40 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   });
 });
 
+const enforceUserIsHr = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.auth.userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
+  }
+
+  if (!ctx.auth.employeeData || ctx.auth.employeeData.position.name !== "HR") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+  }
+
+  return next({
+    ctx: {
+      auth: ctx.auth,
+    },
+  });
+});
+
+const enforceUserIsManager = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.auth.userId) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
+  }
+
+  if (
+    !ctx.auth.employeeData ||
+    ctx.auth.employeeData.position.name !== "Manager"
+  ) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Access denied" });
+  }
+
+  return next({
+    ctx: {
+      auth: ctx.auth,
+    },
+  });
+});
 /**
  * Protected (authed) procedure
  *
@@ -122,3 +188,5 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+export const hrProcedure = t.procedure.use(enforceUserIsHr);
+export const managerProcedure = t.procedure.use(enforceUserIsManager);

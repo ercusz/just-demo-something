@@ -15,3 +15,28 @@ model Post {
     title   String
     content String
 }
+
+model Employee {
+    id        String @id @default(cuid())
+    firstName String
+    lastName  String
+    email     String
+    phone     String
+    department Department @relation(fields: [departmentId], references: [id])
+    departmentId String
+    userId    String @unique
+    position Position @relation(fields: [positionId], references: [id])
+    positionId String
+}
+
+model Department {
+    id        String @id @default(cuid())
+    name      String
+    employees Employee[]
+}
+
+model Position {
+    id        String @id @default(cuid())
+    name      String @unique
+    employees Employee[]
+}
