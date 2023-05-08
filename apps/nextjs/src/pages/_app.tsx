@@ -1,4 +1,5 @@
 // src/pages/_app.tsx
+import { Toaster } from "@acme/ui";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { AppType } from "next/app";
 import { api } from "~/utils/api";
@@ -10,6 +11,7 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
   return (
     <ClerkProvider {...pageProps}>
       <Component {...pageProps} />
+      <Toaster />
     </ClerkProvider>
   );
 };
