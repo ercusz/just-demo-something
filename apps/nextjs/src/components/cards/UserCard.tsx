@@ -7,14 +7,19 @@ import {
   CardTitle,
 } from "@acme/ui";
 import { UserButton, useAuth } from "@clerk/nextjs";
-import { Link } from "lucide-react";
+import Link from "next/link";
 import { api } from "~/utils/api";
 
 const UserCard: React.FC = () => {
-  const { isSignedIn, isLoaded } = useAuth();
-  const { data: employeeData } = api.employee.byId.useQuery(undefined, {
-    enabled: !!isSignedIn,
-  });
+  const { isSignedIn, isLoaded, userId } = useAuth();
+  const { data: employeeData } = api.employee.byId.useQuery(
+    {
+      userId: userId ?? "",
+    },
+    {
+      enabled: !!isSignedIn,
+    },
+  );
 
   return (
     <>
