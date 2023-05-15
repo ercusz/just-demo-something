@@ -24,8 +24,8 @@
   "devDependencies": {
     "@acme/eslint-config": "^0.1.0",
     "@acme/tailwind-config": "^0.1.0",
-    "@types/react": "^18.2.0",
-    "eslint": "^8.38.0",
+    "@types/react": "^18.2.6",
+    "eslint": "^8.40.0",
     "postcss": "^8.4.23",
     "react": "18.2.0",
     "tsup": "^6.7.0",
