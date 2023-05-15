@@ -1,5 +1,8 @@
 import UserCard from "../cards/UserCard";
+import { Button } from "@acme/ui";
+import { HomeIcon } from "lucide-react";
 import Head from "next/head";
+import Link from "next/link";
 
 export interface IPrimaryLayout extends React.ComponentPropsWithoutRef<"div"> {
   title?: string;
@@ -19,6 +22,16 @@ const PrimaryLayout: React.FC<IPrimaryLayout> = ({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="min-h-screen">
+        <Button
+          className="hover:text-white fixed left-0 top-0"
+          variant="link"
+          asChild
+        >
+          <Link href="/">
+            <HomeIcon />
+          </Link>
+        </Button>
+
         <div className="container flex flex-col items-center justify-center gap-4 px-4 py-8">
           <UserCard />
 
