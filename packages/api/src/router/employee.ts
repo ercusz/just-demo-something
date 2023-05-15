@@ -62,7 +62,14 @@ export const employeeRouter = createTRPCRouter({
         });
       }
     }),
-  byId: protectedProcedure.query(({ ctx }) => {
-    return ctx.auth.employeeData;
-  }),
+  byId: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(({ ctx, input }) => {
+      const employeeData = ctx.prisma.employee.findUnique({
+        where: { userId: input.userId },
+        include: { department: true, position: true },
+      });
+
+      return employeeData;
+    }),
 });
