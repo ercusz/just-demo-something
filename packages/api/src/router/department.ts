@@ -1,7 +1,7 @@
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { createTRPCRouter, hrProcedure } from "../trpc";
 
 export const departmentRouter = createTRPCRouter({
-  all: publicProcedure.query(({ ctx }) => {
+  all: hrProcedure.query(({ ctx }) => {
     return ctx.prisma.department.findMany({ orderBy: { name: "asc" } });
   }),
 });
